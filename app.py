@@ -19,8 +19,8 @@ api_hash = os.getenv("API_HASH")
 chats_env = os.getenv('ALLOWED_CHATS')
 channels = [int(_chat) for _chat in chats_env.split(', ')]
 self_id = int(os.getenv('SELF_ID'))
+chunk_amount = int(os.getenv('CHUNK_AMOUNT'))  # post every x chunks to avoid Telegram flood limit error
 client = TelegramClient('openai', api_id, api_hash)
-chunk_amount = 40  # post every x chunks to avoid Telegram flood limit error
 
 roles = ['system', 'user', 'assistant']
 models = {
@@ -102,6 +102,8 @@ async def handler(event):
                 async for fract_response in openai_api_stream(dialog.model, dialog):
                     if r_count == 0:
                         response += fract_response
+                        # first response of chatgpt is '\n\n', telethon and TG parse this as incorrect msg, so there is
+                        # a placeholder
                         m = await event.reply("ChatGPT:")
                     else:
                         response += fract_response
@@ -165,15 +167,12 @@ async def handler(event):
                     await append_message(chat, m, response)
                     print(response)
 
-                    # response = await openai_api(model, dialog)
-                    # m = await event.reply(response)
                     msg = Message(
                         message_id=m.id,
                         role=roles[2],
                         content=response
                     )
                     dialog.messages.append(msg)
-            # await get_thread(event.message, chat)
 
         if '/codex' in text:
             if key in active_dialogs:
