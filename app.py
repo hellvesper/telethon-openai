@@ -51,10 +51,7 @@ active_dialogs: Dict[str, Dialog] = dict()
 
 async def is_reply_to_me(chat, message):
     async for replied_msg in client.iter_messages(chat, ids=message.reply_to_msg_id):
-        if replied_msg.sender_id == self_id:
-            return True
-        else:
-            return False
+        return replied_msg.sender_id == self_id
 
 
 async def append_message(chat, msg, text: str):
